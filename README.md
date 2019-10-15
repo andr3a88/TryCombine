@@ -1,2 +1,1 @@
-# TryCombine
-Try Combine and DiffableDataSource
+# TryDiffableDataSource

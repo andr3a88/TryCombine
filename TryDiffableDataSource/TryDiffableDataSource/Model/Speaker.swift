@@ -14,6 +14,16 @@ struct Speaker {
     let name: String
     let twitterHandler: String
     private(set) var imageURL: URL?
+    
+    static func createFake(count: Int) -> [Speaker] {
+        Array(0..<count).map {
+            Speaker(
+                name: "User \($0)",
+                twitterHandler: "@Twitter \($0)",
+                imageURL: URL(string: "https://pragmaconference.com/assets/images/speakers/jeroen_bakker.jpg")
+            )
+        }
+    }
 }
 
 extension Speaker: Hashable {

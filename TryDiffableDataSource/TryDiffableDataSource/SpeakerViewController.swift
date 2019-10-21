@@ -29,15 +29,7 @@ final class SpeakerViewController: UIViewController {
         
         // Add new speaker
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            var newSpeakers: [Speaker] = []
-            for i in 1..<5 {
-                newSpeakers.append(Speaker(
-                    name: "User \(i)",
-                    twitterHandler: "@Twitter \(i)",
-                    imageURL: URL(string: "https://pragmaconference.com/assets/images/speakers/jeroen_bakker.jpg")
-                ))
-            }
-            self.populateCollectionView(with: newSpeakers)
+            self.populateCollectionView(with: Speaker.createFake(count: 5))
         }
     }
     
@@ -68,14 +60,7 @@ final class SpeakerViewController: UIViewController {
     }
     
     func populateCollectionView() {
-        for i in 1..<100 {
-            let speaker = Speaker(
-                name: "User \(i)",
-                twitterHandler: "@Twitter \(i)",
-                imageURL: URL(string: "https://pragmaconference.com/assets/images/speakers/jeroen_bakker.jpg")
-            )
-            speakers.append(speaker)
-        }
+        speakers = Speaker.createFake(count: 100)
         
         if #available(iOS 13.0, *) {
             var snapshot = NSDiffableDataSourceSnapshot<Section, Speaker>()

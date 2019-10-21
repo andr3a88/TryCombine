@@ -19,7 +19,6 @@ final class SpeakerViewController: UIViewController {
     // New DiffableDataSource only from iOS 13
     @available(iOS 13.0, *)
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, Speaker>? = nil
-    
     private var speakers: [Speaker] = []
     
     override func viewDidLoad() {
@@ -27,6 +26,19 @@ final class SpeakerViewController: UIViewController {
         
         setupCollectionView()
         populateCollectionView()
+        
+        // Add new speaker
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            var newSpeakers: [Speaker] = []
+            for i in 1..<5 {
+                newSpeakers.append(Speaker(
+                    name: "User \(i)",
+                    twitterHandler: "@Twitter \(i)",
+                    imageURL: URL(string: "https://pragmaconference.com/assets/images/speakers/jeroen_bakker.jpg")
+                ))
+            }
+            self.populateCollectionView(with: newSpeakers)
+        }
     }
     
     func setupCollectionView() {
@@ -57,13 +69,12 @@ final class SpeakerViewController: UIViewController {
     
     func populateCollectionView() {
         for i in 1..<100 {
-            speakers.append(
-                Speaker(
-                    name: "User \(i)",
-                    twitterHandler: "@Twitter \(i)",
-                    imageURL: URL(string: "https://pragmaconference.com/assets/images/speakers/jeroen_bakker.jpg")
-                )
+            let speaker = Speaker(
+                name: "User \(i)",
+                twitterHandler: "@Twitter \(i)",
+                imageURL: URL(string: "https://pragmaconference.com/assets/images/speakers/jeroen_bakker.jpg")
             )
+            speakers.append(speaker)
         }
         
         if #available(iOS 13.0, *) {
@@ -73,6 +84,34 @@ final class SpeakerViewController: UIViewController {
             self.dataSource?.apply(snapshot)
         } else {
             collectionView.reloadData()
+        }
+    }
+    
+    func populateCollectionView(with speakers: [Speaker]) {
+        let previousSpeakers = self.speakers
+        self.speakers = speakers
+        
+        if #available(iOS 13.0, *), var snapshot = dataSource?.snapshot() {
+            snapshot.deleteItems(previousSpeakers)
+            snapshot.appendItems(speakers)
+            dataSource?.apply(snapshot, animatingDifferences: true)
+        } else {
+            collectionView.performBatchUpdates({
+            if previousSpeakers.count > speakers.count {
+                let reloadIndexPaths = Array(0..<speakers.count).map({ IndexPath(item: $0, section: 0) })
+                let deleteIndexPaths = Array(speakers.count..<previousSpeakers.count).map({ IndexPath(item: $0, section: 0) })
+                collectionView.reloadItems(at: reloadIndexPaths)
+                collectionView.deleteItems(at: deleteIndexPaths)
+            } else if previousSpeakers.count < speakers.count {
+                let reloadIndexPaths = Array(0..<previousSpeakers.count).map({ IndexPath(item: $0, section: 0) })
+                let insertIndexPaths = Array(previousSpeakers.count..<speakers.count).map({ IndexPath(item: $0, section: 0) })
+                collectionView.reloadItems(at: reloadIndexPaths)
+                collectionView.insertItems(at: insertIndexPaths)
+            } else {
+               let indexPaths = Array(0..<speakers.count).map({ IndexPath(item: $0, section: 0) })
+               collectionView.reloadItems(at: indexPaths)
+            }
+        }, completion: nil)
         }
     }
 }

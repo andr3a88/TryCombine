@@ -10,7 +10,16 @@ import UIKit
 
 final class SpeakerViewController: UIViewController {
     
+    enum Section {
+        case main
+    }
+    
     @IBOutlet weak private var collectionView: UICollectionView!
+    
+    // New DiffableDataSource only from iOS 13
+    @available(iOS 13.0, *)
+    private lazy var dataSource: UICollectionViewDiffableDataSource<Section, Speaker>? = nil
+    
     private var speakers: [Speaker] = []
     
     override func viewDidLoad() {
@@ -25,7 +34,25 @@ final class SpeakerViewController: UIViewController {
                                 forCellWithReuseIdentifier: String(describing: SpeakerCollectionViewCell.self))
         
         collectionView.delegate = self
-        collectionView.dataSource = self
+        
+        if #available(iOS 13.0, *) {
+            setupCollectionViewdDiffableDataSource()
+        } else {
+            collectionView.dataSource = self
+        }
+    }
+    
+    @available(iOS 13.0, *)
+    func setupCollectionViewdDiffableDataSource() {
+        dataSource = .init(collectionView: collectionView, cellProvider: { (collectionView, indexPath, speaker) -> UICollectionViewCell? in
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: SpeakerCollectionViewCell.self),
+                                                                for: indexPath) as? SpeakerCollectionViewCell else {
+                                                                    fatalError("Could not dequeue cell")
+            }
+            
+            cell.display(speaker: speaker)
+            return cell
+        })
     }
     
     func populateCollectionView() {
@@ -38,7 +65,15 @@ final class SpeakerViewController: UIViewController {
                 )
             )
         }
-        collectionView.reloadData()
+        
+        if #available(iOS 13.0, *) {
+            var snapshot = NSDiffableDataSourceSnapshot<Section, Speaker>()
+            snapshot.appendSections([Section.main])
+            snapshot.appendItems(self.speakers, toSection: Section.main)
+            self.dataSource?.apply(snapshot)
+        } else {
+            collectionView.reloadData()
+        }
     }
 }
 
